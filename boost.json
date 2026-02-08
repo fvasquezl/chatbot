@@ -1,0 +1,22 @@
+{
+    "agents": [
+        "claude_code"
+    ],
+    "guidelines": true,
+    "herd_mcp": false,
+    "mcp": true,
+    "packages": [
+        "laravel/fortify",
+        "laravel/ai"
+    ],
+    "sail": true,
+    "skills": [
+        "fluxui-development",
+        "livewire-development",
+        "mcp-development",
+        "pest-testing",
+        "tailwindcss-development",
+        "developing-with-fortify",
+        "developing-with-ai-sdk"
+    ]
+}
