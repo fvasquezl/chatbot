@@ -8,7 +8,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
-new #[Layout('layouts.app', ['title' => 'Chatbot'])] class extends Component {
+new #[Layout('layouts.app', ['title' => 'Chatbot', 'fullHeight' => true])] class extends Component {
     public string $message = '';
 
     #[Locked]
@@ -57,10 +57,8 @@ new #[Layout('layouts.app', ['title' => 'Chatbot'])] class extends Component {
             $this->stream(to: 'response', content: $event->text ?? '');
         }
 
-        $response = $stream->response();
-
-        $this->conversationId = $response->conversationId;
-        $this->messages[] = ['role' => 'assistant', 'content' => $response->text];
+        $this->conversationId = $stream->conversationId;
+        $this->messages[] = ['role' => 'assistant', 'content' => $stream->text];
         $this->isProcessing = false;
     }
 
@@ -113,36 +111,10 @@ new #[Layout('layouts.app', ['title' => 'Chatbot'])] class extends Component {
     }
 }; ?>
 
-<div class="flex h-[calc(100vh-4rem)] lg:h-screen">
-    {{-- Sidebar: conversation list --}}
-    <div class="hidden w-72 shrink-0 flex-col border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 lg:flex">
-        <div class="flex items-center justify-between border-b border-zinc-200 p-4 dark:border-zinc-700">
-            <h2 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Conversations') }}</h2>
-            <flux:button variant="subtle" icon="plus" size="sm" wire:click="startNewConversation" />
-        </div>
-
-        <div class="flex-1 space-y-1 overflow-y-auto p-2">
-            @forelse ($this->conversations as $conv)
-                <button
-                    wire:key="conv-{{ $conv['id'] }}"
-                    wire:click="selectConversation('{{ $conv['id'] }}')"
-                    @class([
-                        'w-full rounded-lg px-3 py-2 text-left text-sm transition-colors',
-                        'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100' => $conversationId === $conv['id'],
-                        'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' => $conversationId !== $conv['id'],
-                    ])
-                >
-                    <span class="block truncate">{{ $conv['title'] }}</span>
-                </button>
-            @empty
-                <p class="px-3 py-2 text-sm text-zinc-400 dark:text-zinc-500">{{ __('No conversations yet.') }}</p>
-            @endforelse
-        </div>
-    </div>
-
+<div class="flex h-full overflow-hidden">
     {{-- Main chat area --}}
-    <div class="flex flex-1 flex-col">
-        {{-- Mobile header --}}
+    <div class="flex min-w-0 flex-1 flex-col">
+        {{-- Mobile header: conversation dropdown --}}
         <div class="flex items-center gap-2 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700 lg:hidden">
             <flux:dropdown>
                 <flux:button variant="subtle" icon="chat-bubble-left-right" size="sm">
@@ -173,7 +145,7 @@ new #[Layout('layouts.app', ['title' => 'Chatbot'])] class extends Component {
 
         {{-- Messages --}}
         <div
-            class="flex-1 space-y-4 overflow-y-auto p-4 md:p-6"
+            class="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 md:p-6"
             x-data
             x-effect="$el.scrollTop = $el.scrollHeight"
         >
@@ -242,7 +214,7 @@ new #[Layout('layouts.app', ['title' => 'Chatbot'])] class extends Component {
         </div>
 
         {{-- Input --}}
-        <div class="border-t border-zinc-200 p-4 dark:border-zinc-700">
+        <div class="shrink-0 border-t border-zinc-200 p-4 dark:border-zinc-700">
             <form wire:submit="sendMessage" class="flex items-center gap-2">
                 <flux:input
                     wire:model="message"
@@ -259,6 +231,32 @@ new #[Layout('layouts.app', ['title' => 'Chatbot'])] class extends Component {
                     :disabled="$isProcessing"
                 />
             </form>
+        </div>
+    </div>
+
+    {{-- Right sidebar: conversation list (desktop only) --}}
+    <div class="hidden w-72 shrink-0 flex-col border-s border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 lg:flex">
+        <div class="flex items-center justify-between border-b border-zinc-200 p-4 dark:border-zinc-700">
+            <h2 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ __('Conversations') }}</h2>
+            <flux:button variant="subtle" icon="plus" size="sm" wire:click="startNewConversation" />
+        </div>
+
+        <div class="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
+            @forelse ($this->conversations as $conv)
+                <button
+                    wire:key="conv-{{ $conv['id'] }}"
+                    wire:click="selectConversation('{{ $conv['id'] }}')"
+                    @class([
+                        'w-full rounded-lg px-3 py-2 text-left text-sm transition-colors',
+                        'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100' => $conversationId === $conv['id'],
+                        'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' => $conversationId !== $conv['id'],
+                    ])
+                >
+                    <span class="block truncate">{{ $conv['title'] }}</span>
+                </button>
+            @empty
+                <p class="px-3 py-2 text-sm text-zinc-400 dark:text-zinc-500">{{ __('No conversations yet.') }}</p>
+            @endforelse
         </div>
     </div>
 </div>
